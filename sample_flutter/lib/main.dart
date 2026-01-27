@@ -5,117 +5,384 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Quiz App',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const QuizScreen(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class Question {
+  final String questionText;
+  final List<String> answers;
+  final int correctAnswerIndex;
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  Question({
+    required this.questionText,
+    required this.answers,
+    required this.correctAnswerIndex,
+  });
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class QuizScreen extends StatefulWidget {
+  const QuizScreen({Key? key}) : super(key: key);
 
-  void _incrementCounter() {
+  @override
+  State<QuizScreen> createState() => _QuizScreenState();
+}
+
+class _QuizScreenState extends State<QuizScreen> {
+  // Quiz state variables
+  bool quizStarted = false;
+  int currentQuestionIndex = 0;
+  int score = 0;
+  int? selectedAnswerIndex;
+  bool isAnswered = false;
+  bool quizEnded = false;
+
+  // Quiz questions
+  final List<Question> questions = [
+    Question(
+      questionText:
+          'Which film was the very first to be independently produced by Marvel Studios, kicking off the Marvel Cinematic Universe (MCU) in 2008?',
+      answers: [
+        'Iron Man',
+        'The Incredible Hulk',
+        'Thor',
+        'Captain America: The First Avenger',
+      ],
+      correctAnswerIndex: 0,
+    ),
+    Question(
+      questionText: 'During the filming of the 2012 film The Avengers, what was the secret production codename used on set and on scripts to keep the project under wraps?',
+      answers: [
+        'Group Hog',
+        'Assembled',
+        'Blue Harvest',
+        'The Initiative',
+      ],
+      correctAnswerIndex: 2,
+    ),
+    Question(
+      questionText: 'In the MCU, Captain America’s shield and the Black Panther’s suit are both made primarily from which rare, fictional African metal?',
+      answers: [
+        'Adamantium',
+        'Uru',
+        'Vibranium',
+        'Promethium',
+      ],
+      correctAnswerIndex: 1,
+    ),
+    Question(
+      questionText: 'What is the largest ocean on Earth?',
+      answers: [
+        'Atlantic Ocean',
+        'Indian Ocean',
+        'Arctic Ocean',
+        'Pacific Ocean',
+      ],
+      correctAnswerIndex: 3,
+    ),
+    Question(
+      questionText: 'Who painted the Mona Lisa?',
+      answers: [
+        'Vincent van Gogh',
+        'Leonardo da Vinci',
+        'Pablo Picasso',
+        'Michelangelo',
+      ],
+      correctAnswerIndex: 1,
+    ),
+  ];
+
+  void startQuiz() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      quizStarted = true;
+      currentQuestionIndex = 0;
+      score = 0;
+      selectedAnswerIndex = null;
+      isAnswered = false;
+      quizEnded = false;
+    });
+  }
+
+  void selectAnswer(int index) {
+    if (!isAnswered) {
+      setState(() {
+        selectedAnswerIndex = index;
+        isAnswered = true;
+        
+        // Check if answer is correct
+        if (index == questions[currentQuestionIndex].correctAnswerIndex) {
+          score++;
+        }
+      });
+    }
+  }
+
+  void nextQuestion() {
+    setState(() {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        selectedAnswerIndex = null;
+        isAnswered = false;
+      } else {
+        quizEnded = true;
+      }
+    });
+  }
+
+  void restartQuiz() {
+    setState(() {
+      quizStarted = false;
+      currentQuestionIndex = 0;
+      score = 0;
+      selectedAnswerIndex = null;
+      isAnswered = false;
+      quizEnded = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Quiz App'),
+        centerTitle: true,
+        elevation: 2,
       ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+      body: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20.0),
+        child: !quizStarted
+            ? buildStartView()
+            : quizEnded
+                ? buildEndView()
+                : buildQuizView(),
+      ),
+    );
+  }
+
+  // Start View
+  Widget buildStartView() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.quiz,
+            size: 100,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 30),
+          const Text(
+            'Welcome to Quiz App',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Test your knowledge with ${questions.length} questions',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 50),
+          ElevatedButton(
+            onPressed: startQuiz,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 50,
+                vertical: 15,
+              ),
+              textStyle: const TextStyle(fontSize: 18),
+            ),
+            child: const Text('Start Quiz'),
+          ),
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+
+  // Quiz View
+  Widget buildQuizView() {
+    final question = questions[currentQuestionIndex];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Progress indicator
+        LinearProgressIndicator(
+          value: (currentQuestionIndex + 1) / questions.length,
+          backgroundColor: Colors.grey[300],
+          minHeight: 8,
+        ),
+        const SizedBox(height: 20),
+        
+        // Question number
+        Text(
+          'Question ${currentQuestionIndex + 1} of ${questions.length}',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 20),
+        
+        // Question text
+        Card(
+          elevation: 2,
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Text(
+              question.questionText,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 30),
+        
+        // Answer buttons
+        ...List.generate(
+          question.answers.length,
+          (index) => Padding(
+            padding: const EdgeInsets.only(bottom: 12.0),
+            child: ElevatedButton(
+              onPressed: isAnswered ? null : () => selectAnswer(index),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.all(16),
+                backgroundColor: selectedAnswerIndex == index
+                    ? (index == question.correctAnswerIndex
+                        ? Colors.green
+                        : Colors.red)
+                    : (isAnswered && index == question.correctAnswerIndex
+                        ? Colors.green
+                        : null),
+                foregroundColor: selectedAnswerIndex == index || 
+                    (isAnswered && index == question.correctAnswerIndex)
+                    ? Colors.white
+                    : null,
+              ),
+              child: Text(
+                question.answers[index],
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+        
+        const Spacer(),
+        
+        // Next button (shown after answering)
+        if (isAnswered)
+          ElevatedButton(
+            onPressed: nextQuestion,
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 15),
+              textStyle: const TextStyle(fontSize: 18),
+            ),
+            child: Text(
+              currentQuestionIndex < questions.length - 1
+                  ? 'Next Question'
+                  : 'See Results',
+            ),
+          ),
+      ],
+    );
+  }
+
+  // End View
+  Widget buildEndView() {
+    final percentage = (score / questions.length * 100).toStringAsFixed(1);
+    
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.emoji_events,
+            size: 100,
+            color: Colors.amber,
+          ),
+          const SizedBox(height: 30),
+          const Text(
+            'Quiz Completed!',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 30),
+          
+          // Score card
+          Card(
+            elevation: 4,
+            child: Padding(
+              padding: const EdgeInsets.all(30.0),
+              child: Column(
+                children: [
+                  const Text(
+                    'Your Score',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '$score / ${questions.length}',
+                    style: const TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '$percentage%',
+                    style: TextStyle(
+                      fontSize: 24,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          
+          const SizedBox(height: 50),
+          
+          // Restart button
+          ElevatedButton.icon(
+            onPressed: restartQuiz,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Restart Quiz'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 40,
+                vertical: 15,
+              ),
+              textStyle: const TextStyle(fontSize: 18),
+            ),
+          ),
+        ],
       ),
     );
   }
